@@ -10,7 +10,7 @@ class UserCreate(BaseModel):
 class UserResponse(BaseModel):
     id: int
     username: str
-    email: str
+    email: EmailStr
     role: str
 
     class Config:
