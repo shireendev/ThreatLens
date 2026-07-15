@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.ioc import IOC
 from app.models.user import User
-from app.schemas.ioc import IOCCreate, IOCResponse
+from app.schemas.ioc import IOCCreate, IOCUpdate, IOCResponse
 from app.routers.user import get_current_user
 
 router = APIRouter()
@@ -51,3 +51,43 @@ def get_iocs(
         query = query.filter(IOC.value == value)
 
     return query.all()
+@router.put("/iocs/{ioc_id}", response_model=IOCResponse)
+def update_ioc(
+    ioc_id: int,
+    updated_ioc: IOCUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    ioc = db.query(IOC).filter(IOC.id == ioc_id).first()
+
+    if not ioc:
+        return {"message": "IOC not found"}
+
+    ioc.ioc_type = updated_ioc.ioc_type
+    ioc.value = updated_ioc.value
+    ioc.severity = updated_ioc.severity
+    ioc.description = updated_ioc.description
+    ioc.source = updated_ioc.source
+    ioc.status = updated_ioc.status
+
+    db.commit()
+    db.refresh(ioc)
+
+    return ioc
+@router.delete("/iocs/{ioc_id}")
+def delete_ioc(
+    ioc_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    ioc = db.query(IOC).filter(IOC.id == ioc_id).first()
+
+    if not ioc:
+        return {"message": "IOC not found"}
+
+    db.delete(ioc)
+    db.commit()
+
+    return {
+        "message": "IOC deleted successfully"
+    }

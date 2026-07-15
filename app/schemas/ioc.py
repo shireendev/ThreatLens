@@ -9,6 +9,15 @@ class IOCCreate(BaseModel):
     source: str
 
 
+class IOCUpdate(BaseModel):
+    ioc_type: str
+    value: str
+    severity: str
+    description: str
+    source: str
+    status: str
+
+
 class IOCResponse(BaseModel):
     id: int
     ioc_type: str
