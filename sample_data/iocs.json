@@ -1,0 +1,16 @@
+[
+  {
+    "ioc_type": "ip",
+    "value": "8.8.8.8",
+    "severity": "medium",
+    "description": "Google DNS test IOC",
+    "source": "sample"
+  },
+  {
+    "ioc_type": "domain",
+    "value": "evil-example.com",
+    "severity": "high",
+    "description": "Sample malicious domain",
+    "source": "sample"
+  }
+]

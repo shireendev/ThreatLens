@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
@@ -7,6 +7,8 @@ from app.models.ioc import IOC
 from app.models.user import User
 from app.schemas.ioc import IOCCreate, IOCUpdate, IOCResponse
 from app.routers.user import get_current_user
+import json
+from typing import List
 
 router = APIRouter()
 
@@ -136,4 +138,41 @@ def delete_ioc(
 
     return {
         "message": "IOC deleted successfully"
+    }
+
+@router.post("/iocs/import")
+async def import_iocs(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    data = json.loads(await file.read())
+
+    imported = 0
+    skipped = 0
+
+    for item in data:
+        existing = db.query(IOC).filter(IOC.value == item["value"]).first()
+
+        if existing:
+            skipped += 1
+            continue
+
+        new_ioc = IOC(
+            ioc_type=item["ioc_type"],
+            value=item["value"],
+            severity=item["severity"],
+            description=item["description"],
+            source=item["source"]
+        )
+
+        db.add(new_ioc)
+        imported += 1
+
+    db.commit()
+
+    return {
+        "imported": imported,
+        "skipped": skipped,
+        "message": "IOC import completed successfully"
     }
